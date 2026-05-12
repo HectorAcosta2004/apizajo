@@ -58,14 +58,14 @@ app.post('/api/send-notification', async (req, res) => {
 }
 });
 //HISTORIAL DE NOTIFICACIONES
-ONESIGNAL_REST_API_KEY = "os_v2_app_6ynqf4eufnfyzfjyprr5anvtvr4y645ohdtu265oylgzbqarqpmskrpocnlh2uw55njy756wcenkwvgcebz6jqdqqu7yv5jpgncezoy";
+ONESIGNAL_REST_API_KEY = "os_v2_app_6ynqf4eufnfyzfjyprr5anvtvr6v7uywpyoum6nebpghskjab3bxmfkciq2wugtzkan7bds7zy5t72r26xdmkkfvzmpwivzegkqcg5q";
 app.get('/api/historial-notificaciones', async (req, res) => {
   try {
     const response = await axios.get('https://onesignal.com/api/v1/notifications', {
       params: { 
         app_id: "f61b02f0-942b-4b8c-9538-7c63d036b3ac",
         limit: 50,
-        kind: 1 // 1 representa notificaciones de "Push", esto ayuda a filtrar
+        kind: 1
       },
       headers: {
         "Authorization": `Basic ${ONESIGNAL_REST_API_KEY}`,
@@ -95,7 +95,6 @@ app.post('/api/notificar-cliente', async (req, res) => {
         app_id: "f61b02f0-942b-4b8c-9538-7c63d036b3ac",
         headings: { "en": titulo },
         contents: { "en": cuerpo },
-        // Esto busca al cliente por el ID que vinculaste en el LoginScreen
         include_external_user_ids: [cliente_id.toString()], 
       },
       {
@@ -202,7 +201,6 @@ app.post("/usuario/password", async (req, res) => {
   const { id, password } = req.body;
   
   try {
-    // Encriptamos la nueva contraseña antes de guardarla
     const hash = await bcrypt.hash(password, 10);
     const sql = "UPDATE usuarios SET password = ? WHERE id = ?";
     
@@ -232,7 +230,7 @@ app.get("/admin/todas-las-ordenes", (req, res) => {
   });
 });
 // ===============================
-// 🔄 CAMBIAR ESTADO DE LA ORDEN (Y NOTIFICAR)
+// 🔄 CAMBIAR ESTADO DE LA ORDEN 
 // ===============================
 app.post("/orden/estado", (req, res) => {
   const { orden_id, estado } = req.body;
@@ -245,11 +243,7 @@ app.post("/orden/estado", (req, res) => {
       console.log("❌ Error al cambiar estado:", err.message);
       return res.json({ success: false, error: err.message });
     }
-
-    // (Opcional pero recomendado) Aquí podríamos insertar una notificación para el cliente
     console.log(`✅ Orden #${orden_id} actualizada a: ${estado}`);
-    
-    // Le decimos a Flutter que todo salió perfecto
     res.json({ success: true, message: "Estado actualizado correctamente" });
   });
 });
@@ -377,7 +371,7 @@ app.post("/api/servicios/agendar", (req, res) => {
   });
 });
 
-// En tu server.js
+//ORDENES DE TECNICO 
 app.get('/api/ordenes/tecnico', (req, res) => {
     const query = `
         SELECT 
@@ -398,10 +392,8 @@ app.get('/api/ordenes/tecnico', (req, res) => {
             return res.status(500).json({ success: false, error: err.message });
         }
         
-        // 🔍 REVISA TU CONSOLA DE NODE.JS (la terminal negra)
         console.log("Datos encontrados:", results);
         
-        // Enviamos 'data' para que coincida con lo que busca tu ApiService
         res.json({ success: true, data: results });
     });
 });
@@ -425,7 +417,6 @@ app.get('/api/admin/estadisticas', (req, res) => {
     db.query(sqlResumen, (err, resumen) => {
         if (err) {
             console.error("Error en MySQL:", err);
-            // El 'return' es vital para que no intente ejecutar lo de abajo
             return res.status(500).json({ success: false, error: err.message });
         }
 
@@ -580,7 +571,7 @@ app.post("/carrito/restar", (req, res) => {
 });
 
 // ===============================
-// 📄 DETALLE ORDEN (Consultas Divididas)
+// 📄 DETALLE ORDEN
 // ===============================
 app.get("/orden/detalle/:id", (req, res) => {
   const id = req.params.id;
@@ -621,6 +612,7 @@ app.get("/orden/detalle/:id", (req, res) => {
     });
   });
 });
+
 // ===============================
 // 🔔 NOTIFICACIONES
 // ===============================
@@ -632,7 +624,7 @@ app.get("/notificaciones/:usuario_id", (req, res) => {
 });
 
 // ===============================
-// 🔐 RECUPERAR CONTRASEÑA (CLIENTE)
+// 🔐 RECUPERAR CONTRASEÑA
 // ===============================
 app.post("/usuario/recuperar-password", async (req, res) => {
   const { email, nueva_password } = req.body;
